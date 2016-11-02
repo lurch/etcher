@@ -17,6 +17,16 @@ Images known to require special treatment:
 - Microsoft Windows (use [Windows USB/DVD Download Tool][windows-usb-tool], or
   [Rufus][rufus]).
 
+- Windows 10 IoT (use the [Windows 10 IoT Core Dashboard][windows-iot-dashboard])
+
+How can I configure persistent storage?
+---------------------------------------
+
+Some programs, usually oriented at making GNU/Linux live USB drives, include an
+option to set persistent storage. This is currently not supported by Etcher, so
+if you require this functionality, we advise to fallback to
+[UNetbootin][unetbootin].
+
 Deactivate desktop shortcut prompt on GNU/Linux
 -----------------------------------------------
 
@@ -34,7 +44,7 @@ Alternatively, set the `SKIP` environment variable before executing the
 AppImage:
 
 ```sh
-SKIP=1 ./Etcher-<version>-linux-<arch>.AppImage
+SKIP=1 ./Etcher-linux-<arch>.AppImage
 ```
 
 Flashing Ubuntu ISOs
@@ -215,3 +225,5 @@ platforms.
 [etcher-cli]: https://github.com/resin-io/etcher/blob/master/docs/CLI.md
 [windows-usb-tool]: https://www.microsoft.com/en-us/download/windows-usb-dvd-download-tool
 [rufus]: https://rufus.akeo.ie
+[unetbootin]: https://unetbootin.github.io
+[windows-iot-dashboard]: https://developer.microsoft.com/en-us/windows/iot/downloads
