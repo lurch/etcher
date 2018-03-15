@@ -4,102 +4,68 @@ env:
   es6: true
   node: true
   mocha: true
-extends: 'eslint:recommended'
+plugins:
+  - lodash
+  - jsdoc
+extends: 'standard'
+parserOptions:
+  sourceType: 'script'
+settings:
+  jsdoc:
+    additionalTagNames:
+      customTags:
+        - fulfil
 rules:
 
   # Possible Errors
 
-  comma-dangle:
-    - error
-    - never
-  no-cond-assign:
-    - error
   no-console:
     - off
-  no-constant-condition:
-    - error
-  no-control-regex:
-    - error
-  no-debugger:
-    - error
-  no-dupe-args:
-    - error
-  no-dupe-keys:
-    - error
-  no-duplicate-case:
-    - error
   no-empty:
-    - error
-  no-empty-character-class:
-    - error
-  no-ex-assign:
-    - error
-  no-extra-boolean-cast:
-    - error
-  no-extra-parens:
     - error
   no-extra-semi:
     - error
-  no-func-assign:
-    - error
-  no-inner-declarations:
-    - error
-    - both
-  no-invalid-regexp:
-    - error
-  no-irregular-whitespace:
-    - error
   no-negated-in-lhs:
     - error
-  no-obj-calls:
-    - error
   no-prototype-builtins:
-    - error
-  no-regex-spaces:
-    - error
-  no-sparse-arrays:
-    - error
-  no-unexpected-multiline:
-    - error
-  no-unreachable:
-    - error
-  no-unsafe-finally:
-    - error
-  use-isnan:
     - error
   valid-jsdoc:
     - error
     - requireReturn: false
       requireReturnDescription: false
-  valid-typeof:
-    - error
+      requireReturnType: true
+      requireParamDescription: true
+      preferType:
+        boolean: "Boolean"
+        number: "Number"
+        object: "Object"
+        string: "String"
+        array: "Array"
+      prefer:
+        arg: "param"
+        return: "returns"
 
   # Best Practices
 
-  accessor-pairs:
-    - error
   array-callback-return:
     - error
   block-scoped-var:
     - error
+  class-methods-use-this:
+    - error
   complexity:
     - off
+  consistent-return:
+    - error
   curly:
     - error
   default-case:
     - error
-  dot-location:
-    - error
-    - property
   dot-notation:
-    - error
-  eqeqeq:
     - error
   guard-for-in:
     - error
   no-alert:
-    - error
-  no-caller:
     - error
   no-case-declarations:
     - error
@@ -109,93 +75,43 @@ rules:
     - error
   no-empty-function:
     - error
-  no-empty-pattern:
-    - error
   no-eq-null:
     - error
-  no-eval:
-    - error
-  no-extend-native:
-    - error
-  no-extra-bind:
-    - error
   no-extra-label:
-    - error
-  no-fallthrough:
-    - error
-  no-floating-decimal:
     - error
   no-implicit-coercion:
     - error
   no-implicit-globals:
     - error
-  no-implied-eval:
-    - error
-  no-iterator:
-    - error
-  no-labels:
-    - error
-  no-lone-blocks:
-    - error
   no-loop-func:
     - error
-  no-multi-spaces:
-    - error
-  no-multi-str:
+  no-magic-numbers:
     - error
   no-native-reassign:
     - error
-  no-new:
+  no-param-reassign:
     - error
-  no-new-func:
+  no-restricted-properties:
     - error
-  no-new-wrappers:
-    - error
-  no-octal:
-    - error
-  no-octal-escape:
-    - error
-  no-proto:
-    - error
-  no-redeclare:
-    - error
-  no-return-assign:
+    - property: __proto__
+  no-return-await:
     - error
   no-script-url:
     - error
-  no-self-assign:
-    - error
-  no-self-compare:
-    - error
-  no-sequences:
-    - error
-  no-throw-literal:
-    - error
-  no-unmodified-loop-condition:
+  no-unused-expressions:
     - error
   no-unused-labels:
     - error
-  no-useless-call:
-    - error
   no-useless-concat:
-    - error
-  no-useless-escape:
     - error
   no-void:
     - error
   no-warning-comments:
     - off
-  no-with:
-    - error
   radix:
     - error
   vars-on-top:
     - off
-  wrap-iife:
-    - error
-    - outside
-  yoda:
-    - error
 
   # Strict mode
 
@@ -205,19 +121,17 @@ rules:
 
   # Variables
 
+  init-declarations:
+    - error
+    - always
   no-catch-shadow:
     - error
-  no-delete-var:
+  no-restricted-globals:
     - error
-  no-label-var:
-    - error
+    - event
   no-shadow:
     - error
-  no-shadow-restricted-names:
-    - error
-  no-undef:
-    - error
-  no-undef-init:
+  no-undefined:
     - error
   no-unused-vars:
     - error
@@ -230,13 +144,7 @@ rules:
     - error
   global-require:
     - off
-  handle-callback-err:
-    - error
   no-mixed-requires:
-    - error
-  no-new-require:
-    - error
-  no-path-concat:
     - error
   no-process-env:
     - off
@@ -250,28 +158,23 @@ rules:
   array-bracket-spacing:
     - error
     - always
-  block-spacing:
+  capitalized-comments:
     - error
-  brace-style:
-    - error
-    - 1tbs
-  camelcase:
-    - error
+    - always
+    - ignoreConsecutiveComments: true
   comma-spacing:
     - error
     - before: false
       after: true
-  comma-style:
-    - error
-    - last
   computed-property-spacing:
     - error
     - never
   consistent-this:
     - error
     - self
-  eol-last:
+  func-name-matching:
     - error
+    - always
   func-names:
     - error
     - never
@@ -280,19 +183,17 @@ rules:
     - expression
   id-blacklist:
     - error
-  indent:
+  id-length:
     - error
-    - 2
-    - SwitchCase: 1
-  key-spacing:
+    - min: 2
+      exceptions:
+        - "_"
+  line-comment-position:
     - error
-    - beforeColon: false
-      afterColon: true
-      mode: strict
-  keyword-spacing:
+    - position: above
+  linebreak-style:
     - error
-    - before: true
-      after: true
+    - unix
   lines-around-comment:
     - error
     - beforeBlockComment: true
@@ -305,6 +206,9 @@ rules:
       allowObjectEnd: false
       allowArrayStart: true
       allowArrayEnd: false
+  lines-around-directive:
+    - error
+    - always
   max-len:
     - error
     - code: 130
@@ -312,96 +216,74 @@ rules:
       ignoreComments: false
       ignoreTrailingComments: false
       ignoreUrls: true
+  max-params:
+    - off
   max-statements-per-line:
     - error
     - max: 1
-  new-cap:
-    - error
-  new-parens:
-    - error
-  no-array-constructor:
-    - error
+  multiline-ternary:
+    - off
+  newline-per-chained-call:
+    - off
   no-bitwise:
     - error
   no-continue:
     - error
   no-inline-comments:
     - error
+  no-lonely-if:
+    - error
   no-mixed-operators:
     - error
-  no-mixed-spaces-and-tabs:
+  no-multi-assign:
     - error
-  no-multiple-empty-lines:
-    - error
-    - max: 1
-      maxEOF: 1
-      maxBOF: 0
   no-negated-condition:
     - error
   no-nested-ternary:
     - error
-  no-new-object:
-    - error
   no-plusplus:
     - error
-  no-spaced-func:
+  no-restricted-syntax:
     - error
-  no-trailing-spaces:
+    - WithStatement
+    - ForInStatement
+  no-spaced-func:
     - error
   no-underscore-dangle:
     - error
     - allowAfterThis: false
-  no-unneeded-ternary:
-    - error
-  no-whitespace-before-property:
-    - error
   object-curly-newline:
     - error
-    - minProperties: 1
+    - minProperties: 3
+      consistent: true
   object-curly-spacing:
     - error
     - always
-  object-property-newline:
+  one-var-declaration-per-line:
     - error
-  one-var:
-    - error
-    - never
+    - always
   operator-assignment:
     - error
     - always
-  operator-linebreak:
-    - error
-    - before
-  quote-props:
-    - error
-    - as-needed
   quotes:
     - error
     - single
+  quote-props:
+    - error
+    - as-needed
   require-jsdoc:
     - error
     - require:
         FunctionDeclaration: true
         ClassDeclaration: true
         MethodDefinition: true
-  semi:
-    - error
-    - always
-  semi-spacing:
-    - error
-    - before: false
-      after: true
-  space-before-blocks:
-    - error
+        ArrowFunctionExpression: true
   space-before-function-paren:
     - error
-    - never
-  space-in-parens:
-    - error
-    - never
-  space-infix-ops:
-    - error
-  spaced-comment:
+    - anonymous: always
+      named: always
+      asyncArrow: never
+  template-tag-spacing:
     - error
     - always
   unicode-bom:
@@ -419,48 +301,126 @@ rules:
     - error
     - before: true
       after: true
-  constructor-super:
-    - error
   generator-star-spacing:
     - error
     - before: true
       after: false
-  no-class-assign:
-    - error
   no-confusing-arrow:
-    - error
-  no-const-assign:
-    - error
-  no-dupe-class-members:
-    - error
-  no-duplicate-imports:
-    - error
-  no-new-symbol:
-    - error
-  no-this-before-super:
-    - error
-  no-useless-computed-key:
-    - error
-  no-useless-constructor:
-    - error
-  no-useless-rename:
     - error
   no-var:
     - error
+  object-shorthand:
+    - error
+    - always
   prefer-const:
     - error
   prefer-reflect:
     - error
   prefer-spread:
     - error
+  prefer-numeric-literals:
+    - error
+  prefer-rest-params:
+    - error
+  prefer-template:
+    - error
+  prefer-arrow-callback:
+    - error
+    - allowNamedFunctions: false
   require-yield:
     - error
-  rest-spread-spacing:
+  symbol-description:
     - error
-  template-curly-spacing:
+
+  # Lodash
+
+  lodash/chain-style:
     - error
-    - never
-  yield-star-spacing:
+    - explicit
+  lodash/identity-shorthand:
     - error
-    - before: true
-      after: false
+    - always
+  lodash/import-scope:
+    - error
+    - full
+  lodash/matches-prop-shorthand:
+    - error
+    - always
+  lodash/matches-shorthand:
+    - error
+    - always
+  lodash/no-commit:
+    - error
+  lodash/path-style:
+    - error
+    - array
+  lodash/prefer-compact:
+    - error
+  lodash/prefer-filter:
+    - error
+    - 5
+  lodash/prefer-flat-map:
+    - error
+  lodash/prefer-invoke-map:
+    - error
+  lodash/prefer-map:
+    - error
+  lodash/prefer-reject:
+    - error
+  lodash/prefer-thru:
+    - error
+  lodash/prefer-wrapper-method:
+    - error
+  lodash/prop-shorthand:
+    - error
+    - always
+  lodash/prefer-constant:
+    - error
+    - true
+    - true
+  lodash/prefer-get:
+    - error
+    - 2
+  lodash/prefer-includes:
+    - error
+    - includeNative: true
+  lodash/prefer-is-nil:
+    - error
+  lodash/prefer-lodash-chain:
+    - error
+  lodash/prefer-lodash-method:
+    - error
+  lodash/prefer-lodash-typecheck:
+    - error
+  lodash/prefer-matches:
+    - error
+    - 3
+  lodash/prefer-noop:
+    - error
+  lodash/prefer-over-quantifier:
+    - error
+  lodash/prefer-startswith:
+    - error
+  lodash/prefer-times:
+    - error
+
+  # JSDoc
+
+  jsdoc/check-param-names:
+    - error
+  jsdoc/check-tag-names:
+    - error
+  jsdoc/newline-after-description:
+    - error
+  jsdoc/require-example:
+    - error
+  jsdoc/require-hyphen-before-param-description:
+    - error
+  jsdoc/require-param:
+    - error
+  jsdoc/require-param-description:
+    - error
+  jsdoc/require-param-type:
+    - error
+  jsdoc/require-returns-type:
+    - error

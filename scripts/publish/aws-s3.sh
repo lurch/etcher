@@ -20,21 +20,61 @@
 set -u
 set -e
 
-if [ "$#" -ne 1 ]; then
-  echo "Usage: $0 <file>" 1>&2
+./scripts/build/check-dependency.sh aws
+
+function usage() {
+  echo "Usage: $0"
+  echo ""
+  echo "Options"
+  echo ""
+  echo "    -f <file>"
+  echo "    -b <s3 bucket>"
+  echo "    -v <version>"
+  echo "    -p <product name>"
+  echo "    -k [S3 key prefix]"
   exit 1
+}
+
+ARGV_FILE=""
+ARGV_BUCKET=""
+ARGV_VERSION=""
+ARGV_PRODUCT_NAME=""
+ARGV_PREFIX=""
+
+while getopts ":f:b:v:p:k:" option; do
+  case $option in
+    f) ARGV_FILE="$OPTARG" ;;
+    b) ARGV_BUCKET="$OPTARG" ;;
+    v) ARGV_VERSION="$OPTARG" ;;
+    p) ARGV_PRODUCT_NAME="$OPTARG" ;;
+    k) ARGV_PREFIX="$OPTARG" ;;
+    *) usage ;;
+  esac
+done
+
+if [ -z "$ARGV_FILE" ] || \
+   [ -z "$ARGV_BUCKET" ] || \
+   [ -z "$ARGV_VERSION" ] || \
+   [ -z "$ARGV_PRODUCT_NAME" ]
+then
+  usage
 fi
 
-if ! command -v aws 1>/dev/null 2>/dev/null; then
-  echo "Dependency missing: aws cli" 1>&2
-  exit 1
-fi
+FILENAME=$(basename "$ARGV_FILE")
 
-ETCHER_VERSION=`node -e "console.log(require('./package.json').version)"`
-S3_BUCKET="resin-production-downloads"
+if [ -n "$ARGV_PREFIX" ]; then
+  S3_KEY="$ARGV_PRODUCT_NAME/$ARGV_PREFIX/$ARGV_VERSION/$FILENAME"
+else
+  S3_KEY="$ARGV_PRODUCT_NAME/$ARGV_VERSION/$FILENAME"
+fi
 
 aws s3api put-object \
-  --bucket $S3_BUCKET \
+  --bucket "$ARGV_BUCKET" \
   --acl public-read \
-  --key etcher/$ETCHER_VERSION/`basename $1` \
-  --body $1
+  --key "$S3_KEY" \
+  --body "$ARGV_FILE"
+
+# Escape plus signs when printing the final URL
+URL="$(echo "https://$ARGV_BUCKET.s3.amazonaws.com/$S3_KEY" | sed 's/\+/%2B/g')"
+
+echo "Uploaded $(basename "$ARGV_FILE") to $URL"

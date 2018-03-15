@@ -1,67 +1,69 @@
-language: cpp
+language: node_js
 sudo: false
+node_js:
+  - "6.10.3"
 
-env:
-  - NODE_VERSION="6.1.0" RUBY_VERSION="2.3.1"
-os:
-  - linux
-  - osx
+# Remove wine from cache
+before_cache:
+  - rm -rf $HOME/.cache/electron-builder/wine
 
-# C++11 support
-# See https://github.com/PacificBiosciences/pbdagcon/pull/7
+cache:
+  ccache: true
+  directories:
+    - $HOME/.cache/electron
+    - $HOME/.cache/electron-builder
+    - $HOME/.npm/_prebuilds
+    - $HOME/Library/Caches/electron
+    - $HOME/Library/Caches/electron-builder
+    - $HOME/.pkg-cache
+    - node_modules
 
-compiler:
-  - gcc
+services:
+  - docker
 
 addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - upx-ucl
-      - gcc-4.8
-      - g++-4.8
-      - clang
-      - dpkg
-      - fakeroot
+      - libstdc++-6-dev
+
+env:
+  global:
+    - CCACHE_TEMPDIR=/tmp/.ccache-temp
+    - CCACHE_COMPRESS=1
+    - CC="clang"
+    - CXX="clang++"
+    - HOMEBREW_NO_AUTO_UPDATE=1
+  matrix:
+    - TARGET_ARCH=x64
+    - TARGET_ARCH=x86
+
+matrix:
+  fast_finish: true
+  exclude:
+    - os: osx
+      env: TARGET_ARCH=x86
+
+os:
+  - linux
 
 before_install:
-  - rm -rf ~/.nvm
-  - git clone https://github.com/creationix/nvm.git ~/.nvm
-  - source ~/.nvm/nvm.sh
-  - nvm --version
-  - nvm install $NODE_VERSION
-  - node --version
-  - npm --version
-  - npm config set spin=false
-  - rvm install $RUBY_VERSION
-  - rvm use $RUBY_VERSION
+  - export HOST_OS="$TRAVIS_OS_NAME";
 
 install:
-  - if [ "$CXX" = "g++" ] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      export CXX="g++-4.8" CC="gcc-4.8";
-    fi
-  - gem install scss_lint
-  - npm install -g bower
-  - npm install -g electron-installer-debian
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      ./scripts/build/linux.sh install x64;
-    fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew install afsctool;
-    fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      ./scripts/build/darwin.sh install;
-    fi
-
-before_script:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      export DISPLAY=:99.0;
-      sh -e /etc/init.d/xvfb start;
-    fi
+  - ./scripts/ci/install.sh -o $HOST_OS -r $TARGET_ARCH
 
 script:
-  - npm test
+  - ./scripts/ci/test.sh -o $HOST_OS -r $TARGET_ARCH
+  - ./scripts/ci/build-installers.sh -o $HOST_OS -r $TARGET_ARCH
+
+deploy:
+  provider: script
+  skip_cleanup: true
+  script: scripts/ci/deploy.sh -o $HOST_OS -r $TARGET_ARCH
+  on:
+    branch: master
 
 notifications:
   email: false

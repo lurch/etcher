@@ -3,6 +3,308 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## v1.3.1 - 2018-01-23
+
+### Fixes
+
+- Fix "stdout maxBuffer" error on Linux
+- Fix Etcher not working / crashing on older Windows systems
+- Fix not all partitions being unmounted after flashing on Linux
+- Fix selection of images in folders with file extension on Mac OS
+
+### Misc
+
+- Update Electron to v1.7.11
+
+## v1.3.0 - 2018-01-04
+
+### Features
+
+- Display connected Compute Modules even if Windows doesn't have the necessary drivers to act on them
+- Add read/write retry delays with backoff to ...
+- Add native application menu (which fixes OS native window management shortcuts not working)
+
+### Fixes
+
+- Fix "Couldn't scan drives" error
+- Ensure the writer process dies when the GUI application is killed
+- Run elevated writing process asynchronously on Windows
+- Fix trailing space in environment variables during Windows elevation
+- Don't send analytics events when attempting to toggle a disabled drive
+- Fix handling of transient write errors on Linux (EBUSY)
+- Fix runaway perl process in drivelist on Mac OS
+
+### Misc
+
+- Update Electron from v1.7.9 to v1.7.10
+- Remove Angular dependency from image-writer
+
+## v1.2.1 - 2017-12-06
+
+### Fixes
+
+- Fix handling of temporary read/write errors
+- Don't send initial Mixpanel events before "Anonymous Tracking" settings are loaded
+- Fix verification step reading from the cache
+
+## v1.2.0 - 2017-11-22
+
+### Features
+
+- Display actual write speed
+- Add the progress and status to the window title.
+- Add a sudo-prompt upon launch on Linux-based systems.
+- Add optional progress bars to drive-selector drives.
+- Increase the flashing speed of usbboot discovered devices.
+- Add eye candy to usbboot initialized devices.
+- Integrate Raspberry Pi's usbboot technology.
+
+### Fixes
+
+- Fix bzip2 streaming with the new pipelines
+- Remove Linux elevation meant for usbboot.
+- Fix `LIBUSB_ERROR_NO_DEVICE` error at the end of usbboot.
+- Gracefully handle scenarios where a USB drive is disconnected halfway through the usbboot procedure.
+- Make sure the progress button is always rounded.
+- Fix permission denied issues when XDG_RUNTIME_DIR is mounted with the `noexec` option.
+- Fix Etcher being unable to read certain zip files
+- Fix "Couldn't scan the drives: An unknown error occurred" error when there is a drive locked with BitLocker.
+- Fix "Missing state eta" error when speed is zero
+- Fix "Stuck on Starting..." error
+- Fix situations where the process would get stuck while flashing
+
+### Misc
+
+- Add the Python version (2.7) to the CONTRIBUTING doc.
+- Remove duplicate debug enabling in usbboot module.
+- Update Electron to v1.7.9
+- Retry ejection various times before giving up on Windows.
+- Try to use `$XDG_RUNTIME_DIR` to extract temporary scripts on GNU/Linux.
+
+## v1.1.2 - 2017-08-07
+
+### Features
+
+- Add support for `.rpi-sdcard` images
+
+### Fixes
+
+- Avoid "broken" icon when selecting a zip image archive with invalid SVG
+- Fix `UNABLE_TO_GET_ISSUER_CERT_LOCALLY` error at startup when behind certain proxies
+- Fix `EHOSTDOWN` error at startup
+- Display a user-friendly error message if the user is not in the sudoers file
+- Make archive-embedded SVG icons work again
+- Fix "imageBasename is not defined" error on the CLI
+- Fix various drive scanning Windows errors
+
+### Misc
+
+- Improve Windows drive detection error codes.
+
+## v1.1.1 - 2017-07-25
+
+### Fixes
+
+- Prevent "percentage above 100%" errors on DMG images
+- Fix Etcher not starting flashes in AppImages
+- Fix most "Unmount failed" errors on macOS
+
+## v1.1.0 - 2017-07-20
+
+### Features
+
+- Add image name, drive name, and icon to OS notifications
+- Add support for `.sdcard` images
+- Start publishing RPM packages
+- Generate single-binary portable installers on Windows
+- Show friendlier error dialogs when opening an image results in an error
+- Generate one-click Windows NSIS installers
+- Show the application version in the WebView banners
+- Show a warning message if the selected image has no partition table
+- Make use of `pkg` to package the Etcher CLI
+- Send anonymous analytics about package types
+- Minor style improvements to the fallback success page banner
+- Turn the update notifier modal into a native dialog
+
+### Fixes
+
+- Fix "You don't have access to this resource" error at startup when behind a firewall
+- Fix `UNABLE_TO_VERIFY_LEAF_SIGNATURE` error at startup when behind a proxy
+- Reset webview after navigating away from the success screen
+- Fix occasional increased CPU usage because of perl regular expression in macOS
+- Don't install to `C:\Program Files (x86)` on 64-bit Windows systems
+- Fix "file is not accessible" error when flashing an image that lives inside a directory whose name is UTF-16 encoded on Windows.
+- Fix various interrelated Windows `.bat` spawning issues
+- Fix 0.0 GB Windows drive detection issues
+- Cleanup drive detection temporary scripts in GNU/Linux and macOS
+- Ensure no analytics events are sent if error reporting is disabled
+- Retry various times on `EAGAIN` when spawning drive scanning scripts
+- Don't break up size numbers in the drive selector
+
+### Misc
+
+- Remove "Advanced" settings subtitle
+- Remove support for the `ETCHER_DISABLE_UPDATES` environment variable
+- Swap speed and time below the flashing progress bar
+
+## v1.0.0 - 2017-05-12
+
+### Features
+
+- Implement a dynamic finish page.
+- Display nicer error dialog when reading an invalid image.
+
+### Fixes
+
+- Prevent drive from getting re-mounted in macOS even when the unmount on success setting is enabled.
+- Fix `ECONNRESET` and `ECONNREFUSED` errors when checking for updates on unstable connections.
+- Fix application stuck at "Starting..." on Windows.
+- Fix error on startup when Windows username contained an ampersand.
+
+## v1.0.0-rc.5 - 2017-05-02
+
+### Fixes
+
+- Fix various elevation issues on Windows
+- Treat unknown images as octet stream
+- Fix uncaught errors when cancelling elevation requests on Windows when the system's language is not English.
+
+## v1.0.0-rc.4 - 2017-04-22
+
+### Fixes
+
+- Fix "Unmount failed" on Windows where the PC is connected to network drives.
+- Various fixes for when drive descriptions contain special characters.
+
+### Misc
+
+- Show a friendly user message on EIO after many retries.
+- Show user friendly messages for `EBUSY, read` and `EBUSY, write` errors on macOS.
+
+## v1.0.0-rc.3 - 2017-04-14
+
+### Fixes
+
+- Show a user friendly message when the drive is unplugged half-way through.
+- Fix "UNKNOWN: unknown error" error when unplugging an SD Card from an internal reader on Windows.
+- Fix "function createError(opts) {}" error on validation failure.
+- Fix "Unmount failed, invalid drive" error on Windows.
+- Fix Apple disk image detection & streaming.
+
+### Misc
+
+- Improve error reporting accuracy.
+
+## v1.0.0-rc.2 - 2017-04-11
+
+### Fixes
+
+- Display a user error if the image is no longer accessible when the writer starts.
+- Prevent uncaught `EISDIR` when dropping a directory to the application.
+- Fix "Path must be a string. Received undefined" when selecting Apple images.
+- Don't interpret certain ISO images as unsupported.
+
+## v1.0.0-rc.1 - 2017-04-10
+
+### Features
+
+- Add support for Apple Disk images.
+- Add the un-truncated drive description to the selected drive step tooltip.
+- Prevent flashing an image that is larger than the drive with the CLI.
+
+### Fixes
+
+- Prevent progress button percentage to exceed 100%.
+- Don't print stack traces by default in the CLI.
+- Prevent blank application when sending SIGINT on GNU/Linux and macOS.
+- Fix unmounting freezing in macOS.
+- Fix GNU/Linux udev error when `net.ifnames` is set.
+- Fix `ENOSPC` image alignment errors.
+- Fix errors when unplugging drives exactly when the drive scanning scripts are running.
+- Fix several unmount related issues in all platforms.
+- Fix "rawr i'm a dinosaur" bzip2 error.
+
+### Misc
+
+- Make errors more user friendly throughout the application.
+- Don't report "invalid archive" errors to TrackJS.
+- Stop drive scanning loop if an error occurs.
+- Don't include user paths in Mixpanel analytics events.
+- Provide a user friendly error message when no polkit authentication agent is available on the system.
+- Show friendly drive name instead of device name in the main screen.
+- Start reporting errors to Sentry instead of to TrackJS.
+
+## v1.0.0-beta.19 - 2017-02-24
+
+### Features
+
+- Show warning when user tries to flash a Windows image
+- Update the image step icon with an hexagonal "plus" icon.
+- Update main page design to its new style.
+- Swap the order of the drive and image selection steps.
+
+### Fixes
+
+- Fix `transformRequest` error at startup when not connected to the internet, or when on an unstable connection.
+- Prevent flashing the drive where the source image is located.
+- Fix text overflowing on tooltips.
+- Don't ignore errors coming from the Windows drive detection script.
+- Omit empty SD Card readers in the drive selector on Windows.
+- Fix "Error: Command Failed" error when unmounting on Windows.
+- Fix duplicate error messages on some errors.
+- Fix 'MySQL' is not recognised as an internal or external command error on Windows.
+- Ignore `stderr` output from drive detection scripts if they exit with code zero.
+
+### Misc
+
+- Improve validation error message.
+- Emit an analytics event on `ENOSPC`.
+- Normalize button text casing.
+- Don't auto select system drives in unsafe mode.
+- Use a OS dialog to show the "exit while flashing" warning.
+- Capitalize every text throughout the application.
+
+## v1.0.0-beta.18 - 2017-01-16
+
+### Features
+
+- Improve Etcher CLI error messages.
+- Replace the `--robot` CLI option with an `ETCHER_CLI_ROBOT` environment variable.
+- Sort supported extensions alphabetically in the image file-picker.
+- Label system drives in the drive-list widget.
+- Show available Etcher version in the update notifier.
+- Confirm before user quits while writing.
+- Add a changelog link to the update notifier modal.
+- Make the image file picker attach to the main window (as a real modal).
+
+### Fixes
+
+- Fix alignment of single call to action buttons inside modals.
+- Fix "Invalid message" error caused by the IPC client emitting multiple JSON objects as a single message.
+- Fix "This key is already associated with an element of this collection" error when multiple partitions point to the same drive letter on Windows.
+- Fix system drives detected as removable drives on Mac Mini.
+- Fix sporadic "EIO: i/o error, read" errors during validation.
+- Fix "EIO: i/o error, write" error.
+
+## v1.0.0-beta.17 - 2016-11-28
+
+### Fixes
+
+- Fix command line arguments not interpreted correctly when running the CLI with a custom named NodeJS binary.
+- Wrap drive names and descriptions in the drive selector widget.
+- Allow the user to press ESC to cancel a modal dialog.
+- Fix "Can't set the flashing state when not flashing" error.
+- Fix writing process remaining alive after the GUI is closed.
+- Check available permissions in the CLI early on.
+- Fix `this.log is not a function` error when clicking "flash again".
+- Fix duplicate drives in Windows.
+- Fix drive scanning exceptions on GNU/Linux systems with `net.ifnames` enabled.
+- Fix `0x80131700` error when scanning drives on Windows.
+- Fix internal SDCard drive descriptions.
+- Fix unmount issues in GNU/Linux and OS X when paths contain spaces.
+- Fix "Not Enough Space" error when flashing unaligned images.
+- Fix `at least one volume could not be unmounted` error in OS X.
+
 ## v1.0.0-beta.16 - 2016-10-28
 
 ### Features
@@ -188,7 +490,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 - Fix broken image drag and drop functionality.
 - Prevent global shortcuts from interferring with another applications.
-- Prevent re-activating the "Flash" button with the keybaord shortcuts when a flash is already in process.
+- Prevent re-activating the "Flash" button with the keyboard shortcuts when a flash is already in process.
 - Fix certain non-removable Windows devices not being filtered out.
 - Display non-mountable Windows drives in the drive selector.
 

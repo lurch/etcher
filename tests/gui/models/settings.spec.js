@@ -1,101 +1,284 @@
-'use strict';
+/*
+ * Copyright 2017 resin.io
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-const m = require('mochainon');
-const _ = require('lodash');
-const angular = require('angular');
-require('angular-mocks');
-const Store = require('../../../lib/gui/models/store');
+'use strict'
 
-describe('Browser: SettingsModel', function() {
+const m = require('mochainon')
+const _ = require('lodash')
+const Bluebird = require('bluebird')
+const store = require('../../../lib/shared/store')
+const settings = require('../../../lib/gui/app/models/settings')
+const localSettings = require('../../../lib/gui/app/models/local-settings')
 
-  beforeEach(angular.mock.module(
-    require('../../../lib/gui/models/settings')
-  ));
+describe('Browser: settings', function () {
+  beforeEach(function () {
+    return settings.reset()
+  })
 
-  describe('SettingsModel', function() {
+  const DEFAULT_SETTINGS = store.Defaults.get('settings').toJS()
 
-    const SUPPORTED_KEYS = _.keys(Store.Defaults.get('settings').toJS());
-    let SettingsModel;
+  it('should be able to set and read values', function () {
+    m.chai.expect(settings.get('foo')).to.be.undefined
+    return settings.set('foo', true).then(() => {
+      m.chai.expect(settings.get('foo')).to.be.true
+      return settings.set('foo', false)
+    }).then(() => {
+      m.chai.expect(settings.get('foo')).to.be.false
+    })
+  })
 
-    beforeEach(angular.mock.inject(function(_SettingsModel_) {
-      SettingsModel = _SettingsModel_;
-    }));
+  describe('.reset()', function () {
+    it('should reset the settings to their default values', function () {
+      m.chai.expect(settings.getAll()).to.deep.equal(DEFAULT_SETTINGS)
+      return settings.set('foo', 1234).then(() => {
+        m.chai.expect(settings.getAll()).to.not.deep.equal(DEFAULT_SETTINGS)
+        return settings.reset()
+      }).then(() => {
+        m.chai.expect(settings.getAll()).to.deep.equal(DEFAULT_SETTINGS)
+      })
+    })
 
-    beforeEach(function() {
-      this.settings = SettingsModel.getAll();
-    });
+    it('should reset the local settings to their default values', function () {
+      return settings.set('foo', 1234).then(localSettings.readAll).then((data) => {
+        m.chai.expect(data).to.not.deep.equal(DEFAULT_SETTINGS)
+        return settings.reset()
+      }).then(localSettings.readAll).then((data) => {
+        m.chai.expect(data).to.deep.equal(DEFAULT_SETTINGS)
+      })
+    })
 
-    afterEach(function() {
-      _.each(SUPPORTED_KEYS, (supportedKey) => {
-        SettingsModel.set(supportedKey, this.settings[supportedKey]);
-      });
-    });
+    describe('given the local settings are cleared', function () {
+      beforeEach(function () {
+        return localSettings.clear()
+      })
 
-    it('should be able to set and read values', function() {
-      const keyUnderTest = _.first(SUPPORTED_KEYS);
-      const originalValue = SettingsModel.get(keyUnderTest);
+      it('should set the local settings to their default values', function () {
+        return settings.reset().then(localSettings.readAll).then((data) => {
+          m.chai.expect(data).to.deep.equal(DEFAULT_SETTINGS)
+        })
+      })
+    })
+  })
 
-      SettingsModel.set(keyUnderTest, !originalValue);
-      m.chai.expect(SettingsModel.get(keyUnderTest)).to.equal(!originalValue);
-      SettingsModel.set(keyUnderTest, originalValue);
-      m.chai.expect(SettingsModel.get(keyUnderTest)).to.equal(originalValue);
-    });
+  describe('.assign()', function () {
+    it('should throw if no settings', function (done) {
+      settings.assign().asCallback((error) => {
+        m.chai.expect(error).to.be.an.instanceof(Error)
+        m.chai.expect(error.message).to.equal('Missing settings')
+        done()
+      })
+    })
 
-    describe('.set()', function() {
+    it('should throw if setting an array', function (done) {
+      settings.assign({
+        foo: 'bar',
+        bar: [ 1, 2, 3 ]
+      }).asCallback((error) => {
+        m.chai.expect(error).to.be.an.instanceof(Error)
+        m.chai.expect(error.message).to.equal('Invalid setting value: 1,2,3 for bar')
+        done()
+      })
+    })
 
-      it('should throw if the key is not supported', function() {
-        m.chai.expect(function() {
-          SettingsModel.set('foobar', true);
-        }).to.throw('Unsupported setting: foobar');
-      });
+    it('should not override all settings', function () {
+      return settings.assign({
+        foo: 'bar',
+        bar: 'baz'
+      }).then(() => {
+        m.chai.expect(settings.getAll()).to.deep.equal(_.assign({}, DEFAULT_SETTINGS, {
+          foo: 'bar',
+          bar: 'baz'
+        }))
+      })
+    })
 
-      it('should throw if no key', function() {
-        m.chai.expect(function() {
-          SettingsModel.set(null, true);
-        }).to.throw('Missing setting key');
-      });
+    it('should not store invalid settings to the local machine', function () {
+      return localSettings.readAll().then((data) => {
+        m.chai.expect(data.foo).to.be.undefined
 
-      it('should throw if key is not a string', function() {
-        m.chai.expect(function() {
-          SettingsModel.set(1234, true);
-        }).to.throw('Invalid setting key: 1234');
-      });
+        return new Bluebird((resolve) => {
+          settings.assign({
+            foo: [ 1, 2, 3 ]
+          }).asCallback((error) => {
+            m.chai.expect(error).to.be.an.instanceof(Error)
+            m.chai.expect(error.message).to.equal('Invalid setting value: 1,2,3 for foo')
+            return resolve()
+          })
+        })
+      }).then(localSettings.readAll).then((data) => {
+        m.chai.expect(data.foo).to.be.undefined
+      })
+    })
 
-      it('should throw if setting an object', function() {
-        const keyUnderTest = _.first(SUPPORTED_KEYS);
-        m.chai.expect(function() {
-          SettingsModel.set(keyUnderTest, {
-            x: 1
-          });
-        }).to.throw('Invalid setting value: [object Object]');
-      });
+    it('should store the settings to the local machine', function () {
+      return localSettings.readAll().then((data) => {
+        m.chai.expect(data.foo).to.be.undefined
+        m.chai.expect(data.bar).to.be.undefined
 
-      it('should throw if setting an array', function() {
-        const keyUnderTest = _.first(SUPPORTED_KEYS);
-        m.chai.expect(function() {
-          SettingsModel.set(keyUnderTest, [ 1, 2, 3 ]);
-        }).to.throw('Invalid setting value: 1,2,3');
-      });
+        return settings.assign({
+          foo: 'bar',
+          bar: 'baz'
+        })
+      }).then(localSettings.readAll).then((data) => {
+        m.chai.expect(data.foo).to.equal('bar')
+        m.chai.expect(data.bar).to.equal('baz')
+      })
+    })
 
-      it('should set the key to undefined if no value', function() {
-        const keyUnderTest = _.first(SUPPORTED_KEYS);
-        SettingsModel.set(keyUnderTest);
-        m.chai.expect(SettingsModel.get(keyUnderTest)).to.be.undefined;
-      });
+    it('should not change the application state if storing to the local machine results in an error', function (done) {
+      settings.set('foo', 'bar').then(() => {
+        m.chai.expect(settings.get('foo')).to.equal('bar')
 
-    });
+        const localSettingsWriteAllStub = m.sinon.stub(localSettings, 'writeAll')
+        localSettingsWriteAllStub.returns(Bluebird.reject(new Error('localSettings error')))
 
-    describe('.getAll()', function() {
+        settings.assign({
+          foo: 'baz'
+        }).asCallback((error) => {
+          m.chai.expect(error).to.be.an.instanceof(Error)
+          m.chai.expect(error.message).to.equal('localSettings error')
+          localSettingsWriteAllStub.restore()
+          m.chai.expect(settings.get('foo')).to.equal('bar')
+          done()
+        })
+      }).catch(done)
+    })
+  })
 
-      it('should be able to read all values', function() {
-        const allValues = SettingsModel.getAll();
+  describe('.load()', function () {
+    it('should extend the application state with the local settings content', function () {
+      const object = {
+        foo: 'bar'
+      }
 
-        _.each(SUPPORTED_KEYS, function(supportedKey) {
-          m.chai.expect(allValues[supportedKey]).to.equal(SettingsModel.get(supportedKey));
-        });
-      });
+      m.chai.expect(settings.getAll()).to.deep.equal(DEFAULT_SETTINGS)
 
-    });
+      return localSettings.writeAll(object).then(() => {
+        m.chai.expect(settings.getAll()).to.deep.equal(DEFAULT_SETTINGS)
+        return settings.load()
+      }).then(() => {
+        m.chai.expect(settings.getAll()).to.deep.equal(_.assign({}, DEFAULT_SETTINGS, object))
+      })
+    })
 
-  });
-});
+    it('should keep the application state intact if there are no local settings', function () {
+      m.chai.expect(settings.getAll()).to.deep.equal(DEFAULT_SETTINGS)
+      return localSettings.clear().then(settings.load).then(() => {
+        m.chai.expect(settings.getAll()).to.deep.equal(DEFAULT_SETTINGS)
+      })
+    })
+  })
+
+  describe('.set()', function () {
+    it('should set an unknown key', function () {
+      m.chai.expect(settings.get('foobar')).to.be.undefined
+      return settings.set('foobar', true).then(() => {
+        m.chai.expect(settings.get('foobar')).to.be.true
+      })
+    })
+
+    it('should reject if no key', function (done) {
+      settings.set(null, true).asCallback((error) => {
+        m.chai.expect(error).to.be.an.instanceof(Error)
+        m.chai.expect(error.message).to.equal('Missing setting key')
+        done()
+      })
+    })
+
+    it('should throw if key is not a string', function (done) {
+      settings.set(1234, true).asCallback((error) => {
+        m.chai.expect(error).to.be.an.instanceof(Error)
+        m.chai.expect(error.message).to.equal('Invalid setting key: 1234')
+        done()
+      })
+    })
+
+    it('should throw if setting an object', function (done) {
+      settings.set('foo', {
+        setting: 1
+      }).asCallback((error) => {
+        m.chai.expect(error).to.be.an.instanceof(Error)
+        m.chai.expect(error.message).to.equal('Invalid setting value: [object Object] for foo')
+        done()
+      })
+    })
+
+    it('should throw if setting an array', function (done) {
+      settings.set('foo', [ 1, 2, 3 ]).asCallback((error) => {
+        m.chai.expect(error).to.be.an.instanceof(Error)
+        m.chai.expect(error.message).to.equal('Invalid setting value: 1,2,3 for foo')
+        done()
+      })
+    })
+
+    it('should set the key to undefined if no value', function () {
+      return settings.set('foo', 'bar').then(() => {
+        m.chai.expect(settings.get('foo')).to.equal('bar')
+        return settings.set('foo')
+      }).then(() => {
+        m.chai.expect(settings.get('foo')).to.be.undefined
+      })
+    })
+
+    it('should store the setting to the local machine', function () {
+      return localSettings.readAll().then((data) => {
+        m.chai.expect(data.foo).to.be.undefined
+        return settings.set('foo', 'bar')
+      }).then(localSettings.readAll).then((data) => {
+        m.chai.expect(data.foo).to.equal('bar')
+      })
+    })
+
+    it('should not store invalid settings to the local machine', function () {
+      return localSettings.readAll().then((data) => {
+        m.chai.expect(data.foo).to.be.undefined
+
+        return new Bluebird((resolve) => {
+          settings.set('foo', [ 1, 2, 3 ]).asCallback((error) => {
+            m.chai.expect(error).to.be.an.instanceof(Error)
+            m.chai.expect(error.message).to.equal('Invalid setting value: 1,2,3 for foo')
+            return resolve()
+          })
+        })
+      }).then(localSettings.readAll).then((data) => {
+        m.chai.expect(data.foo).to.be.undefined
+      })
+    })
+
+    it('should not change the application state if storing to the local machine results in an error', function (done) {
+      settings.set('foo', 'bar').then(() => {
+        m.chai.expect(settings.get('foo')).to.equal('bar')
+
+        const localSettingsWriteAllStub = m.sinon.stub(localSettings, 'writeAll')
+        localSettingsWriteAllStub.returns(Bluebird.reject(new Error('localSettings error')))
+
+        settings.set('foo', 'baz').asCallback((error) => {
+          m.chai.expect(error).to.be.an.instanceof(Error)
+          m.chai.expect(error.message).to.equal('localSettings error')
+          localSettingsWriteAllStub.restore()
+          m.chai.expect(settings.get('foo')).to.equal('bar')
+          done()
+        })
+      }).catch(done)
+    })
+  })
+
+  describe('.getAll()', function () {
+    it('should initial return all default values', function () {
+      m.chai.expect(settings.getAll()).to.deep.equal(DEFAULT_SETTINGS)
+    })
+  })
+})

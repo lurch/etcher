@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-'use strict';
+'use strict'
+
+const _ = require('lodash')
 
 module.exports = {
 
@@ -32,27 +34,35 @@ module.exports = {
   },
 
   includeCommitWhen: (commit) => {
-    return commit.footer['Changelog-Entry'];
+    return commit.footer['Changelog-Entry']
   },
 
   getIncrementLevelFromCommit: (commit) => {
-    return commit.footer['Change-Type'];
+    if (/none/i.test(commit.footer['Change-Type'])) {
+      return null
+    }
+    return commit.footer['Change-Type'] &&
+      _.toLower(commit.footer['Change-Type'])
   },
 
   transformTemplateData: (data) => {
-    data.features = data.commits.filter((commit) => {
-      return commit.subject.type === 'feat';
-    });
+    data.features = _.filter(data.commits, {
+      subject: {
+        type: 'feat'
+      }
+    })
 
-    data.fixes = data.commits.filter((commit) => {
-      return commit.subject.type === 'fix';
-    });
+    data.fixes = _.filter(data.commits, {
+      subject: {
+        type: 'fix'
+      }
+    })
 
-    data.misc = data.commits.filter((commit) => {
-      return ![ 'fix', 'feat' ].includes(commit.subject.type);
-    });
+    data.misc = _.filter(data.commits, (commit) => {
+      return !_.includes([ 'fix', 'feat' ], commit.subject.type)
+    })
 
-    return data;
+    return data
   },
 
   template: [
@@ -89,4 +99,4 @@ module.exports = {
     '{{/if}}'
   ].join('\n')
 
-};
+}

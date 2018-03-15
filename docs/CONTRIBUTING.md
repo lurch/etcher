@@ -10,45 +10,94 @@ High-level Etcher overview
 Make sure you checkout our [ARCHITECTURE.md][ARCHITECTURE] guide, which aims to
 explain how all the pieces fit together.
 
-Running locally
----------------
-
-See the [RUNNING-LOCALLY.md][RUNNING-LOCALLY] guide.
-
 Developing
 ----------
 
-We rely on various `npm` scripts to perform some common tasks:
+### Prerequisites
 
-- `npm run lint`: Run the linter.
-- `npm run sass`: Compile SCSS files.
+#### Common
 
-We make use of [EditorConfig] to communicate indentation, line endings and
-other text editing default. We encourage you to install the relevant plugin in
-your text editor of choice to avoid having to fix any issues during the review
-process.
+- [NodeJS](https://nodejs.org) (at least v6)
+- [Python 2.7](https://www.python.org)
+- [jq](https://stedolan.github.io/jq/)
+- [curl](https://curl.haxx.se/)
 
-Updating a dependency
----------------------
+```sh
+pip install -r requirements.txt
+```
 
-Given we use [npm shrinkwrap][shrinkwrap], we have to take extra steps to make
-sure the `npm-shrinkwrap.json` file gets updated correctly when we update a
-dependency.
+You might need to run this with `sudo` or administrator permissions.
 
-Use the following steps to ensure everything goes flawlessly:
+#### Windows
 
-- Delete your `node_modules/` to ensure you don't have extraneous dependencies
-  you might have brought during development, or you are running older
-  dependencies because you come from another branch or reference.
+- [NSIS v2.51](http://nsis.sourceforge.net/Main_Page) (v3.x won't work)
+- Either one of the following:
+  - [Visual C++ 2015 Build Tools](http://landinghub.visualstudio.com/visual-cpp-build-tools) containing standalone compilers, libraries and scripts
+  - Install the [windows-build-tools](https://github.com/felixrieseberg/windows-build-tools) via npm with `npm install --global windows-build-tools`
+  - [Visual Studio Community 2015](https://www.microsoft.com/en-us/download/details.aspx?id=48146) (free) (other editions, like Professional and Enterprise, should work too)
+    **NOTE:** Visual Studio 2015 doesn't install C++ by default. You have to rerun the
+    setup, select "Modify" and then check `Visual C++ -> Common Tools for Visual
+    C++ 2015` (see http://stackoverflow.com/a/31955339)
+- [MinGW](http://www.mingw.org)
 
-- Install the new version of the dependency. For example: `npm install --save
-  <package>@<version>`. This will update the `npm-shrinkwrap.json` file.
+You might need to `npm config set msvs_version 2015` for node-gyp to correctly detect
+the version of Visual Studio you're using (in this example VS2015).
 
-- Run `npm run shrinkwrap`. This is a small script that ensures that operating
-  system specific dependencies that could get included in the previous step are
-  removed from `npm-shrinkwrap.json`.
+The following MinGW packages are required:
 
-- Commit *both* `package.json` and `npm-shrinkwrap.json`.
+- `msys-make`
+- `msys-unzip`
+- `msys-zip`
+- `msys-bash`
+- `msys-coreutils`
+
+#### OS X
+
+- [XCode](https://developer.apple.com/xcode/) or [XCode Command Line Tools],
+which can be installed by running `xcode-select --install`.
+
+#### Linux
+
+- `libudev-dev` for libusb (install with `sudo apt install libudev-dev` for example)
+
+### Cloning the project
+
+```sh
+git clone https://github.com/resin-io/etcher
+cd etcher
+```
+
+### Installing npm dependencies
+
+**NOTE:** Please make use of the following command to install npm dependencies rather
+than simply running `npm install` given that we need to do extra configuration
+to make sure native dependencies are correctly compiled for Electron, otherwise
+the application might not run successfully.
+
+If you're on Windows, **run the command from the _Developer Command Prompt for
+VS2015_**, to ensure all Visual Studio command utilities are available in the
+`%PATH%`.
+
+```sh
+make electron-develop
+```
+
+### Running the application
+
+#### GUI
+
+```sh
+# Build the GUI
+make webpack
+# Start Electron
+npm start
+```
+
+#### CLI
+
+```sh
+node bin/etcher
+```
 
 Testing
 -------
@@ -73,15 +122,64 @@ systems as they can before sending a pull request.
 *The test suite is run automatically by CI servers when you send a pull
 request.*
 
+We also rely on various `make` targets to perform some common tasks:
+
+- `make lint`: Run the linter.
+- `make sass`: Compile SCSS files.
+
+We make use of [EditorConfig] to communicate indentation, line endings and
+other text editing default. We encourage you to install the relevant plugin in
+your text editor of choice to avoid having to fix any issues during the review
+process.
+
+Updating a dependency
+---------------------
+
+Given we use [npm shrinkwrap][shrinkwrap], we have to take extra steps to make
+sure the `npm-shrinkwrap.json` file gets updated correctly when we update a
+dependency.
+
+Use the following steps to ensure everything goes flawlessly:
+
+- Run `make electron-develop` to ensure you don't have extraneous dependencies
+  you might have brought during development, or you are running older
+  dependencies because you come from another branch or reference.
+
+- Install the new version of the dependency. For example: `npm install --save
+  <package>@<version>`. This will update the `npm-shrinkwrap.json` file.
+
+- Commit *both* `package.json` and `npm-shrinkwrap.json`.
+
+Diffing Binaries
+----------------
+
+Binary files are tagged as "binary" in the `.gitattributes` file, but also have
+a `diff=hex` tag, which allows you to see hexdump-style diffs for binaries,
+if you add the following to either your global or repository-local git config:
+
+```sh
+$ git config diff.hex.textconv hexdump
+$ git config diff.hex.binary true
+```
+
+And global, respectively:
+
+```sh
+$ git config --global diff.hex.textconv hexdump
+$ git config --global diff.hex.binary true
+```
+
+If you don't have `hexdump` available on your platform,
+you can try [hxd], which is also a bit faster.
+
+Commit Guidelines
+-----------------
+
+See [COMMIT-GUIDELINES.md][COMMIT-GUIDELINES] for a thorough guide on how to
+write commit messages.
+
 Sending a pull request
 ----------------------
-
-We make use of [commitizen] to ensure certain commit conventions, since they
-will be used to auto-generate the CHANGELOG. The project already includes all
-necessary configuration, so you only have to install the commitizen cli tool
-(`npm install -g commitizen`) and commit by executing `git cz`, which will
-drive you through an interactive wizard to make sure your commit is perfectly
-crafted according to our guidelines.
 
 When sending a pull request, consider the following guidelines:
 
@@ -100,7 +198,7 @@ when your pull request is merged.
 
 - Write a descriptive pull request title.
 
-- Squash commits when possible, for example, when commiting review changes.
+- Squash commits when possible, for example, when committing review changes.
 
 Before your pull request can be merged, the following conditions must hold:
 
@@ -116,7 +214,8 @@ systems we support.
 Don't hesitate to get in touch if you have any questions or need any help!
 
 [ARCHITECTURE]: https://github.com/resin-io/etcher/blob/master/docs/ARCHITECTURE.md
-[RUNNING-LOCALLY]: https://github.com/resin-io/etcher/blob/master/docs/RUNNING-LOCALLY.md
+[COMMIT-GUIDELINES]: https://github.com/resin-io/etcher/blob/master/docs/COMMIT-GUIDELINES.md
 [EditorConfig]: http://editorconfig.org
-[commitizen]: https://commitizen.github.io/cz-cli/#making-your-repo-commitizen-friendly
 [shrinkwrap]: https://docs.npmjs.com/cli/shrinkwrap
+[hxd]: https://github.com/jhermsmeier/hxd
+[XCode Command Line Tools]: https://developer.apple.com/library/content/technotes/tn2339/_index.html

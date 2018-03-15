@@ -47,9 +47,11 @@ to a raw device and the place where image validation resides. Its main purpose
 is to abstract the messy details of interacting with raw devices in all major
 operating systems.
 
-- [Etcher Image Stream](https://github.com/resin-io-modules/etcher-image-stream)
+- [Etcher Image Stream](../lib/image-stream)
 
-The goal of this project is to convert any kind of input into a readable stream
+> (Moved from a separate repository into the main Etcher codebase)
+
+This module converts any kind of input into a readable stream
 representing the image so it can be plugged to [etcher-image-write]. Inputs
 that this module might handle could be, for example: a simple image file, a URL
 to an image, a compressed image, an image inside a ZIP archive, etc. Together
@@ -94,9 +96,6 @@ contains certain features to ease communication:
 
 - [Well-documented exit codes.][exit-codes]
 
-- A `--robot` option, which causes the Etcher CLI to output state in a way that
-can be easily machine-parsed.
-
 Summary
 -------
 
@@ -108,7 +107,7 @@ be documented instead!
 
 [lego-blocks]: https://github.com/sindresorhus/ama/issues/10#issuecomment-117766328
 [etcher-image-write]: https://github.com/resin-io-modules/etcher-image-write
-[exit-codes]: https://github.com/resin-io/etcher/blob/master/lib/src/exit-codes.js
+[exit-codes]: https://github.com/resin-io/etcher/blob/master/lib/shared/exit-codes.js
 [cli-dir]: https://github.com/resin-io/etcher/tree/master/lib/cli
 [gui-dir]: https://github.com/resin-io/etcher/tree/master/lib/gui
 [electron]: http://electron.atom.io

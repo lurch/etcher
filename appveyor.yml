@@ -1,43 +1,53 @@
 # appveyor file
 # http://www.appveyor.com/docs/appveyor-yml
 
-init:
-  - git config --global core.autocrlf input
+image: Visual Studio 2015
 
-image: Visual Studio 2013
+# See https://github.com/electron/spectron#on-appveyor
+os: unstable
 
 cache:
   - C:\Users\appveyor\.node-gyp
+  - '%LOCALAPPDATA%\electron\Cache'
+  - '%LOCALAPPDATA%\electron-builder\cache'
   - '%AppData%\npm-cache'
-  - '%CHOCOLATEY_CACHE%'
+  - '%USERPROFILE%\.pkg-cache'
+  - node_modules -> npm-shrinkwrap.json
+  - C:\ProgramData\chocolatey\bin -> appveyor.yml
+  - C:\ProgramData\chocolatey\lib -> appveyor.yml
+  - C:\Users\appveyor\AppData\Local\Temp\chocolatey -> appveyor.yml
 
 # what combinations to test
 environment:
   global:
     ELECTRON_NO_ATTACH_CONSOLE: true
-    CHOCOLATEY_CACHE: '%AppData%\chocolatey-cache'
-  matrix:
-    - nodejs_version: 6.1.0
+    nodejs_version: "6.10.3"
+
+platform:
+  - x86
+  - x64
+
+matrix:
+  fast_finish: true
 
 install:
-  - ps: Install-Product node $env:nodejs_version x64
-  - npm install -g npm bower rimraf asar
-  - choco config set cacheLocation %CHOCOLATEY_CACHE%
-  - choco install nsis -version 2.51
-  - choco install upx
-  - choco install 7zip.commandline
+  - ps: Update-NodeJsInstallation $env:nodejs_version $env:Platform
   - set PATH=C:\Program Files (x86)\Windows Kits\8.1\bin\x86;%PATH%
   - set PATH=C:\Program Files (x86)\NSIS;%PATH%
-  - set PATH=C:\Ruby22\bin;%PATH%
-  - gem install scss_lint
-  - .\scripts\build\windows.bat install x64
+  - set PATH=C:\MinGW\bin;%PATH%
+  - set PATH=C:\MinGW\msys\1.0\bin;%PATH%
+  - bash .\scripts\ci\install.sh -o win32 -r %Platform%
 
 build: off
 
 test_script:
   - node --version
   - npm --version
-  - cmd: npm test
+  - bash .\scripts\ci\test.sh -o win32 -r %Platform%
+  - bash .\scripts\ci\build-installers.sh -o win32 -r %Platform%
+
+deploy_script:
+  - if %APPVEYOR_REPO_BRANCH%==master (bash .\scripts\ci\deploy.sh -o win32 -r %Platform%)
 
 notifications:
 

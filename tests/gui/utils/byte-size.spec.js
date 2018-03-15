@@ -1,27 +1,40 @@
-'use strict';
+/*
+ * Copyright 2017 resin.io
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-const m = require('mochainon');
-const angular = require('angular');
-require('angular-mocks');
+'use strict'
 
-describe('Browser: ByteSize', function() {
+const m = require('mochainon')
+const angular = require('angular')
+require('angular-mocks')
+const units = require('../../../lib/shared/units')
 
+describe('Browser: ByteSize', function () {
   beforeEach(angular.mock.module(
-    require('../../../lib/gui/utils/byte-size/byte-size')
-  ));
+    require('../../../lib/gui/app/utils/byte-size/byte-size')
+  ))
 
-  describe('GigabyteFilter', function() {
+  describe('ClosestUnitFilter', function () {
+    let closestUnitFilter
 
-    let gigabyteFilter;
+    beforeEach(angular.mock.inject(function (_closestUnitFilter_) {
+      closestUnitFilter = _closestUnitFilter_
+    }))
 
-    beforeEach(angular.mock.inject(function(_gigabyteFilter_) {
-      gigabyteFilter = _gigabyteFilter_;
-    }));
-
-    it('should convert bytes to gigabytes', function() {
-      m.chai.expect(gigabyteFilter(7801405440)).to.equal(7.80140544);
-      m.chai.expect(gigabyteFilter(100000000)).to.equal(0.1);
-    });
-
-  });
-});
+    it('should expose lib/shared/units.js bytesToGigabytes()', function () {
+      m.chai.expect(closestUnitFilter).to.equal(units.bytesToClosestUnit)
+    })
+  })
+})

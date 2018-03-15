@@ -14,78 +14,104 @@
  * limitations under the License.
  */
 
-'use strict';
+'use strict'
 
-const m = require('mochainon');
-const angular = require('angular');
-require('angular-mocks');
+const m = require('mochainon')
+const windowProgress = require('../../../lib/gui/app/os/window-progress')
 
-describe('Browser: OSWindowProgress', function() {
+describe('Browser: WindowProgress', function () {
+  describe('windowProgress', function () {
+    describe('given a stubbed current window', function () {
+      beforeEach(function () {
+        this.setProgressBarSpy = m.sinon.spy()
+        this.setTitleSpy = m.sinon.spy()
 
-  beforeEach(angular.mock.module(
-    require('../../../lib/gui/os/window-progress/window-progress')
-  ));
+        windowProgress.currentWindow = {
+          setProgressBar: this.setProgressBarSpy,
+          setTitle: this.setTitleSpy
+        }
 
-  describe('OSWindowProgressService', function() {
+        this.state = {
+          flashing: 1,
+          validating: 0,
+          succeeded: 0,
+          failed: 0,
+          percentage: 85,
+          speed: 100
+        }
+      })
 
-    let OSWindowProgressService;
+      describe('.set()', function () {
+        it('should translate 0-100 percentages to 0-1 ranges', function () {
+          windowProgress.set(this.state)
+          m.chai.expect(this.setProgressBarSpy).to.have.been.calledWith(0.85)
+        })
 
-    beforeEach(angular.mock.inject(function(_OSWindowProgressService_) {
-      OSWindowProgressService = _OSWindowProgressService_;
-    }));
+        it('should set 0 given 0', function () {
+          this.state.percentage = 0
+          windowProgress.set(this.state)
+          m.chai.expect(this.setProgressBarSpy).to.have.been.calledWith(0)
+        })
 
-    describe('given a stubbed current window', function() {
+        it('should set 1 given 100', function () {
+          this.state.percentage = 100
+          windowProgress.set(this.state)
+          m.chai.expect(this.setProgressBarSpy).to.have.been.calledWith(1)
+        })
 
-      beforeEach(function() {
-        this.setProgressBarSpy = m.sinon.spy();
+        it('should throw if given a percentage higher than 100', function () {
+          this.state.percentage = 101
+          const state = this.state
+          m.chai.expect(function () {
+            windowProgress.set(state)
+          }).to.throw('Invalid percentage: 101')
+        })
 
-        OSWindowProgressService.currentWindow = {
-          setProgressBar: this.setProgressBarSpy
-        };
-      });
+        it('should throw if given a percentage less than 0', function () {
+          this.state.percentage = -1
+          const state = this.state
+          m.chai.expect(function () {
+            windowProgress.set(state)
+          }).to.throw('Invalid percentage: -1')
+        })
 
-      describe('.set()', function() {
+        it('should set the flashing title', function () {
+          windowProgress.set(this.state)
+          m.chai.expect(this.setTitleSpy).to.have.been.calledWith(' \u2013 85% Flashing')
+        })
 
-        it('should translate 0-100 percentages to 0-1 ranges', function() {
-          OSWindowProgressService.set(85);
-          m.chai.expect(this.setProgressBarSpy).to.have.been.calledWith(0.85);
-        });
+        it('should set the validating title', function () {
+          this.state.flashing = 0
+          this.state.validating = 1
+          windowProgress.set(this.state)
+          m.chai.expect(this.setTitleSpy).to.have.been.calledWith(' \u2013 85% Validating')
+        })
 
-        it('should set 0 given 0', function() {
-          OSWindowProgressService.set(0);
-          m.chai.expect(this.setProgressBarSpy).to.have.been.calledWith(0);
-        });
+        it('should set the starting title', function () {
+          this.state.percentage = 0
+          this.state.speed = 0
+          windowProgress.set(this.state)
+          m.chai.expect(this.setTitleSpy).to.have.been.calledWith(' \u2013 Starting...')
+        })
 
-        it('should set 1 given 100', function() {
-          OSWindowProgressService.set(100);
-          m.chai.expect(this.setProgressBarSpy).to.have.been.calledWith(1);
-        });
+        it('should set the finishing title', function () {
+          this.state.percentage = 100
+          windowProgress.set(this.state)
+          m.chai.expect(this.setTitleSpy).to.have.been.calledWith(' \u2013 Finishing...')
+        })
+      })
 
-        it('should throw if given a percentage higher than 100', function() {
-          m.chai.expect(function() {
-            OSWindowProgressService.set(101);
-          }).to.throw('Invalid window progress percentage: 101');
-        });
+      describe('.clear()', function () {
+        it('should set -1', function () {
+          windowProgress.clear()
+          m.chai.expect(this.setProgressBarSpy).to.have.been.calledWith(-1)
+        })
 
-        it('should throw if given a percentage less than 0', function() {
-          m.chai.expect(function() {
-            OSWindowProgressService.set(-1);
-          }).to.throw('Invalid window progress percentage: -1');
-        });
-
-      });
-
-      describe('.clear()', function() {
-
-        it('should set -1', function() {
-          OSWindowProgressService.clear();
-          m.chai.expect(this.setProgressBarSpy).to.have.been.calledWith(-1);
-        });
-
-      });
-
-    });
-
-  });
-
-});
+        it('should clear the window title', function () {
+          windowProgress.clear()
+          m.chai.expect(this.setTitleSpy).to.have.been.calledWith('')
+        })
+      })
+    })
+  })
+})
